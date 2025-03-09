@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citation Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+        .main-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .citation-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .citation-type-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .citation-text {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #ff3547;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .citation-actions {
+            margin-top: 15px;
+        }
+        .citation-meta {
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 15px;
+            text-align: right;
+        }
+        .sort-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .sort-label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .copy-icon {
+            cursor: pointer;
+            color: #007bff;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .dropdown-menu {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .citation-dropdown {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Citation Generator</h1>
+        
+        <!-- Citation Input Form -->
+        <div class="main-card">
+            <div class="mb-3">
+                <label for="identifierInput" class="form-label fw-bold">DOI or ISBN</label>
+                <input type="text" class="form-control" id="identifierInput" placeholder="Enter DOI or ISBN-10/13">
+                <div class="form-text">
+                    Accepts <a href="#">Digital Object Identifier (DOI)</a> <small class="text-muted">(With or without http)</small><br>
+                    or <a href="#">International Standard Book Number (ISBN-10 or ISBN-13)</a> <small class="text-muted">(With or without hyphens)</small>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="citationFormat" class="form-label fw-bold">Citation Format</label>
+                <div class="dropdown citation-dropdown">
+                    <button class="btn btn-light dropdown-toggle w-100 text-start" type="button" id="citationFormatButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        APA 7th Edition
+                    </button>
+                    <ul class="dropdown-menu w-100" id="citationFormatDropdown">
+                        <li><a class="dropdown-item" href="#" data-style="apa-7th">APA 7th Edition</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="apa">APA 6th Edition</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="mla">MLA 8th Edition</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="mla-9">MLA 9th Edition</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="chicago">Chicago Author-Date</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="chicago-notes">Chicago Notes and Bibliography</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="harvard">Harvard Reference Format</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="ieee">IEEE</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="vancouver">Vancouver</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="ama">American Medical Association</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="acs">American Chemical Society</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="nature">Nature Journal</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="science">Science Magazine</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="bibtex">BibTeX</a></li>
+                        <li><a class="dropdown-item" href="#" data-style="acm">Association for Computing Machinery</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button id="generateButton" class="btn btn-primary w-100">Generate Citation</button>
+        </div>
+        
+        <!-- Saved Citations Section -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Saved Citations</h2>
+            <div class="sort-container">
+                <span class="sort-label">Sort by:</span>
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="sortDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        Alphabetical
+                    </button>
+                    <ul class="dropdown-menu" id="sortDropdown">
+                        <li><a class="dropdown-item active" href="#" data-sort="alphabetical">Alphabetical</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="newest">Newest First</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="oldest">Oldest First</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="format">Citation Format</a></li>
+                    </ul>
+                </div>
+                <div class="ms-3">
+                    <button id="copyAllBtn" class="btn btn-outline-primary">Copy All Citations</button>
+                </div>
+                <div class="ms-2">
+                    <button id="deleteAllBtn" class="btn btn-outline-danger">Delete All</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Citation List -->
+        <div id="citationList">
+            <!-- Example Citation -->
+            <div class="citation-card" data-id="example">
+                <span class="citation-type-badge">APA</span>
+                <button class="delete-btn">🗑️</button>
+                
+                <div class="citation-text">
+                    Diefendorff, James M., Seaton, Gina A. (2015). Work Engagement: A Window into the Covert Experience of Job Attitudes?
+                </div>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <div>
+                        <strong>Parenthetical:</strong> 
+                        <span>(Diefendorff & Seaton, 2015)</span>
+                        <button class="btn btn-sm btn-outline-secondary ms-2 py-0" onclick="copyCitation('parenthetical-example')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div>
+                        <strong>Narrative:</strong>
+                        <span>Diefendorff and Seaton (2015)</span>
+                        <button class="btn btn-sm btn-outline-secondary ms-2 py-0" onclick="copyCitation('narrative-example')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-outline-primary" onclick="copyCitation('full-example')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                        </svg>
+                        Copy Full Citation
+                    </button>
+                </div>
+                
+                <div class="citation-meta">
+                    Added: 3/9/2025 2:15:40 PM
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast for Copy Notification -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="copyToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Citation Generator</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Citation copied to clipboard!
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let currentStyle = 'apa-7th';
+        let savedCitations = [];
+        const apiBaseUrl = 'http://127.0.0.1:8000/api'; // Update to match your API URL
+
+        // Initialize tooltips and toasts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize citation format dropdown
+            document.querySelectorAll('#citationFormatDropdown a').forEach(item => {
+                item.addEventListener('click', event => {
+                    event.preventDefault();
+                    document.getElementById('citationFormatButton').textContent = item.textContent;
+                    currentStyle = item.getAttribute('data-style');
+                });
+            });
+
+            // Initialize sort dropdown
+            document.querySelectorAll('#sortDropdown a').forEach(item => {
+                item.addEventListener('click', event => {
+                    event.preventDefault();
+                    document.getElementById('sortDropdownButton').textContent = item.textContent;
+                    sortCitations(item.getAttribute('data-sort'));
+                    
+                    // Update active state
+                    document.querySelectorAll('#sortDropdown a').forEach(a => {
+                        a.classList.remove('active');
+                    });
+                    item.classList.add('active');
+                });
+            });
+
+            // Generate button click event
+            document.getElementById('generateButton').addEventListener('click', generateCitation);
+
+            // Copy all citations button
+            document.getElementById('copyAllBtn').addEventListener('click', copyAllCitations);
+
+            // Delete all citations button
+            document.getElementById('deleteAllBtn').addEventListener('click', deleteAllCitations);
+
+            // Delete button event for example citation
+            document.querySelector('.delete-btn').addEventListener('click', function() {
+                deleteById('example');
+            });
+
+            // Load any saved citations from localStorage
+            loadSavedCitations();
+        });
+
+        // Function to generate a citation
+        async function generateCitation() {
+            const identifier = document.getElementById('identifierInput').value.trim();
+            if (!identifier) {
+                alert('Please enter a DOI or ISBN');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/generate_citation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        identifier: identifier,
+                        style: currentStyle
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                
+                // Add to saved citations
+                const citation = {
+                    id: Date.now().toString(),
+                    identifier: data.identifier,
+                    full_citation: data.full_citation,
+                    parenthetical: data.parenthetical,
+                    narrative: data.narrative,
+                    style: currentStyle,
+                    style_name: document.getElementById('citationFormatButton').textContent,
+                    timestamp: new Date().toISOString()
+                };
+                
+                savedCitations.push(citation);
+                saveCitations();
+                renderCitations();
+                
+                // Clear input
+                document.getElementById('identifierInput').value = '';
+                
+            } catch (error) {
+                console.error('Error generating citation:', error);
+                alert('Error generating citation. Please check the identifier and try again.');
+            }
+        }
+
+        // Function to render citations
+        function renderCitations() {
+            const container = document.getElementById('citationList');
+            // Keep the example citation if no saved citations
+            if (savedCitations.length === 0) {
+                return;
+            }
+
+            // Clear the container except for the example if no real citations
+            container.innerHTML = '';
+
+            savedCitations.forEach(citation => {
+                const card = document.createElement('div');
+                card.className = 'citation-card';
+                card.dataset.id = citation.id;
+
+                const formattedTime = formatTimestamp(citation.timestamp);
+
+                card.innerHTML = `
+                    <span class="citation-type-badge">${getStyleShortName(citation.style)}</span>
+                    <button class="delete-btn" onclick="deleteById('${citation.id}')">🗑️</button>
+                    
+                    <div class="citation-text">
+                        ${citation.full_citation}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-3">
+                        <div>
+                            <strong>Parenthetical:</strong> 
+                            <span>${citation.parenthetical}</span>
+                            <button class="btn btn-sm btn-outline-secondary ms-2 py-0" onclick="copyCitation('parenthetical-${citation.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <strong>Narrative:</strong>
+                            <span>${citation.narrative}</span>
+                            <button class="btn btn-sm btn-outline-secondary ms-2 py-0" onclick="copyCitation('narrative-${citation.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary" onclick="copyCitation('full-${citation.id}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                            </svg>
+                            Copy Full Citation
+                        </button>
+                    </div>
+                    
+                    <div class="citation-meta">
+                        Added: ${formattedTime}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Function to get a short name for the citation style
+        function getStyleShortName(style) {
+            const styleMap = {
+                'apa': 'APA',
+                'apa-7th': 'APA',
+                'mla': 'MLA',
+                'mla-9': 'MLA',
+                'chicago': 'Chicago',
+                'chicago-notes': 'Chicago',
+                'harvard': 'Harvard',
+                'ieee': 'IEEE',
+                'vancouver': 'Vancouver',
+                'ama': 'AMA',
+                'acs': 'ACS',
+                'nature': 'Nature',
+                'science': 'Science',
+                'bibtex': 'BibTeX',
+                'acm': 'ACM'
+            };
+            return styleMap[style] || style.toUpperCase();
+        }
+
+        // Function to format timestamp
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+        }
+
+        // Function to copy citation
+        function copyCitation(id) {
+            let textToCopy = '';
+            const parts = id.split('-');
+            const type = parts[0];
+            const citationId = parts.slice(1).join('-');
+            
+            if (citationId === 'example') {
+                // Handle the example citation
+                if (type === 'parenthetical') {
+                    textToCopy = '(Diefendorff & Seaton, 2015)';
+                } else if (type === 'narrative') {
+                    textToCopy = 'Diefendorff and Seaton (2015)';
+                } else {
+                    textToCopy = 'Diefendorff, James M., Seaton, Gina A. (2015). Work Engagement: A Window into the Covert Experience of Job Attitudes?';
+                }
+            } else {
+                // Handle real citations
+                const citation = savedCitations.find(c => c.id === citationId);
+                if (citation) {
+                    if (type === 'parenthetical') {
+                        textToCopy = citation.parenthetical;
+                    } else if (type === 'narrative') {
+                        textToCopy = citation.narrative;
+                    } else {
+                        textToCopy = citation.full_citation;
+                    }
+                }
+            }
+            
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    showToast();
+                })
+                .catch(err => {
+                    console.error('Could not copy text: ', err);
+                });
+        }
+
+        // Function to show toast notification
+        function showToast() {
+            const toastEl = document.getElementById('copyToast');
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        // Function to delete a citation by ID
+        function deleteById(id) {
+            if (id === 'example') {
+                // Just remove the example citation
+                document.querySelector(`.citation-card[data-id="${id}"]`).remove();
+                return;
+            }
+            
+            savedCitations = savedCitations.filter(citation => citation.id !== id);
+            saveCitations();
+            renderCitations();
+        }
+
+        // Function to delete all citations
+        function deleteAllCitations() {
+            if (confirm('Are you sure you want to delete all citations?')) {
+                savedCitations = [];
+                saveCitations();
+                renderCitations();
+                
+                // Reset to show the example
+                const container = document.getElementById('citationList');
+                if (container.children.length === 0) {
+                    loadSavedCitations(); // This will show the example citation
+                }
+            }
+        }
+
+        // Function to copy all citations
+        function copyAllCitations() {
+            let allText = '';
+            
+            if (savedCitations.length === 0) {
+                // Copy the example if no saved citations
+                allText = 'Diefendorff, James M., Seaton, Gina A. (2015). Work Engagement: A Window into the Covert Experience of Job Attitudes?';
+            } else {
+                // Copy all saved citations
+                allText = savedCitations.map(citation => citation.full_citation).join('\n\n');
+            }
+            
+            navigator.clipboard.writeText(allText)
+                .then(() => {
+                    showToast();
+                })
+                .catch(err => {
+                    console.error('Could not copy text: ', err);
+                });
+        }
+
+        // Function to sort citations
+        function sortCitations(sortBy) {
+            if (sortBy === 'alphabetical') {
+                savedCitations.sort((a, b) => {
+                    return a.full_citation.localeCompare(b.full_citation);
+                });
+            } else if (sortBy === 'newest') {
+                savedCitations.sort((a, b) => {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                });
+            } else if (sortBy === 'oldest') {
+                savedCitations.sort((a, b) => {
+                    return new Date(a.timestamp) - new Date(b.timestamp);
+                });
+            } else if (sortBy === 'format') {
+                savedCitations.sort((a, b) => {
+                    return a.style_name.localeCompare(b.style_name);
+                });
+            }
+            
+            renderCitations();
+        }
+
+        // Load saved citations from localStorage
+        function loadSavedCitations() {
+            const saved = localStorage.getItem('savedCitations');
+            if (saved) {
+                savedCitations = JSON.parse(saved);
+                renderCitations();
+            }
+        }
+
+        // Save citations to localStorage
+        function saveCitations() {
+            localStorage.setItem('savedCitations', JSON.stringify(savedCitations));
+        }
+    </script>
+</body>
+</html>

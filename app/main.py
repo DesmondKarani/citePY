@@ -4,14 +4,18 @@ Citation Generator API
 A FastAPI application that serves as the backend for the citation generator.
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import FastAPI, HTTPException, Depends, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import logging
 import json
 from datetime import datetime
 import uvicorn
+import os
 
 # Import our modules
 from app.data_fetcher import fetch_metadata, clean_identifier, identify_identifier_type
@@ -25,6 +29,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Create FastAPI app
 app = FastAPI(
     title="Citation Generator API",
     description="API for generating citations from DOIs and ISBNs",
@@ -39,6 +44,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Create directories if they don't exist
+os.makedirs("static", exist_ok=True)
+os.makedirs("templates", exist_ok=True)
+
+# Mount the static directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Setup templates
+templates = Jinja2Templates(directory="templates")
 
 # Pydantic models for request/response
 class IdentifierRequest(BaseModel):
@@ -66,9 +81,10 @@ class StylesResponse(BaseModel):
 # In-memory cache for citation results
 citation_cache = {}
 
-@app.get("/", include_in_schema=False)
-async def root():
-    return {"message": "Citation Generator API"}
+# Add a route to serve the main page
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/api/validate", response_model=ValidationResponse)
 async def validate_identifier(request: IdentifierRequest):
@@ -157,4 +173,4 @@ async def health_check():
     return {"status": "ok"}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

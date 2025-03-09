@@ -23,15 +23,16 @@ PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 STYLES_DIR = os.path.join(PROJECT_ROOT, 'app', 'styles')
 os.makedirs(STYLES_DIR, exist_ok=True)
 
-# List of CSL styles to download
+# List of CSL styles to download with verified correct names
+# These names were verified in the GitHub repository
 STYLES = [
     'apa',
-    'apa-7',  # Corrected from apa-7th-edition
+    'apa-6th-edition',  # Note: apa-7th-edition doesn't exist, use apa instead
     'modern-language-association',
-    'modern-language-association-9',  # Corrected
+    'modern-language-association-8th-edition',  # 9th edition doesn't exist, use 8th
     'chicago-author-date',
     'chicago-note-bibliography',
-    'harvard-cite-them-right',  # Corrected from harvard1
+    'harvard-cite-them-right',
     'ieee',
     'vancouver',
     'american-medical-association',
@@ -39,7 +40,7 @@ STYLES = [
     'nature',
     'science',
     'bibtex',
-    'acm-sig-proceedings'  # Corrected from association-for-computing-machinery
+    'acm-sig-proceedings'
 ]
 
 # GitHub repository URL for CSL styles

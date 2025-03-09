@@ -10,29 +10,43 @@ import json
 import requests
 import logging
 
-# Try different import patterns to handle the citeproc-py package
+# Simplified, reliable import strategy
 try:
-    # Try the most likely import pattern first
-    from citeproc import CitationStylesStyle, CiteProcJSON
-    from citeproc.source import CiteProcJSON
-    from citeproc.formatter.html import HtmlFormatter
-    from citeproc.formatter.plain import PlainFormatter
-    from citeproc.citation import CitationItem, CitationStylesBibliography
-except ImportError:
+    # citeproc-py 0.7.0+ has a different structure
+    import citeproc
+    from citeproc import Citation, CitationItem, CitationStylesBibliography, CitationStylesStyle
+
+    # Check for the location of CiteProcJSON in 0.7.0+
     try:
-        # Try another common pattern
-        import citeproc
-        from citeproc.style import CitationStylesStyle
-        from citeproc.source import CiteProcJSON
-        from citeproc.formatter.html import HtmlFormatter
-        from citeproc.formatter.plain import PlainFormatter
-        from citeproc.citation import CitationItem, CitationStylesBibliography
+        from citeproc.source.json import CiteProcJSON
     except ImportError:
-        # Last resort - raise a more helpful error
-        raise ImportError(
-            "Could not import citeproc-py. Please check your installation. "
-            "Try running: pip install --upgrade citeproc-py"
-        )
+        from citeproc.source import CiteProcJSON
+    
+    # We'll create basic formatters as needed, instead of trying to import them
+    class SimpleHtmlFormatter:
+        def preformat(self, text):
+            return text
+        
+        def bibliography(self, entries):
+            return "<div class='csl-bib-body'>\n" + "\n".join(entries) + "\n</div>"
+    
+    class SimplePlainFormatter:
+        def preformat(self, text):
+            return text
+        
+        def bibliography(self, entries):
+            return "\n".join(entries)
+            
+    # Use our simple formatters
+    HtmlFormatter = SimpleHtmlFormatter
+    PlainFormatter = SimplePlainFormatter
+    
+except ImportError:
+    # Last resort - raise a more helpful error
+    raise ImportError(
+        "Could not import citeproc-py. Please check your installation. "
+        "Try running: pip install --upgrade citeproc-py"
+    )
 
 # Directory for storing CSL style files
 STYLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'styles')
@@ -164,7 +178,7 @@ def format_citation(csl_data, style_name, output_format='plain'):
         
         # Process all items
         for item in csl_data:
-            citation = [CitationItem(item['id'])]
+            citation = Citation([CitationItem(item['id'])])
             bibliography.register(citation)
         
         # Generate the bibliography
@@ -172,7 +186,7 @@ def format_citation(csl_data, style_name, output_format='plain'):
         bibliography.update_items()
         
         # Return the formatted bibliography
-        return str(bibliography.bibliography())
+        return str(bibliography.bibliography()[0])
     
     except Exception as e:
         logger.error(f"Error formatting citation: {e}")

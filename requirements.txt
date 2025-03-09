@@ -8,3 +8,4 @@ aiohttp>=3.8.5
 httpx>=0.24.1
 python-multipart>=0.0.6
 pytest>=7.4.1
+pip install jinja2
