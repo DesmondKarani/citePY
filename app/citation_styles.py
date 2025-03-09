@@ -9,11 +9,30 @@ import os
 import json
 import requests
 import logging
-from citeproc_py.style import CitationStylesStyle
-from citeproc_py.source import CiteProcJSON
-from citeproc_py.formatter.html import HtmlFormatter
-from citeproc_py.formatter.plain import PlainFormatter
-from citeproc_py.citation import CitationItem
+
+# Try different import patterns to handle the citeproc-py package
+try:
+    # Try the most likely import pattern first
+    from citeproc import CitationStylesStyle, CiteProcJSON
+    from citeproc.source import CiteProcJSON
+    from citeproc.formatter.html import HtmlFormatter
+    from citeproc.formatter.plain import PlainFormatter
+    from citeproc.citation import CitationItem, CitationStylesBibliography
+except ImportError:
+    try:
+        # Try another common pattern
+        import citeproc
+        from citeproc.style import CitationStylesStyle
+        from citeproc.source import CiteProcJSON
+        from citeproc.formatter.html import HtmlFormatter
+        from citeproc.formatter.plain import PlainFormatter
+        from citeproc.citation import CitationItem, CitationStylesBibliography
+    except ImportError:
+        # Last resort - raise a more helpful error
+        raise ImportError(
+            "Could not import citeproc-py. Please check your installation. "
+            "Try running: pip install --upgrade citeproc-py"
+        )
 
 # Directory for storing CSL style files
 STYLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'styles')
@@ -22,9 +41,9 @@ os.makedirs(STYLES_DIR, exist_ok=True)
 # Citation style mapping (style name to CSL style ID)
 STYLE_MAPPING = {
     'apa': 'apa',
-    'apa-7th': 'apa-7',
+    'apa-7th': 'apa-6th-edition',  # Note: apa-7th-edition doesn't exist, using apa-6th-edition as fallback
     'mla': 'modern-language-association',
-    'mla-9': 'modern-language-association-9',
+    'mla-9': 'modern-language-association-8th-edition',  # 9th edition doesn't exist, using 8th
     'chicago': 'chicago-author-date',
     'chicago-notes': 'chicago-note-bibliography',
     'harvard': 'harvard-cite-them-right',
@@ -141,7 +160,6 @@ def format_citation(csl_data, style_name, output_format='plain'):
         formatter = PlainFormatter() if output_format == 'plain' else HtmlFormatter()
         
         # Create the citation processor
-        from citeproc_py.citation import CitationStylesBibliography
         bibliography = CitationStylesBibliography(style, source, formatter)
         
         # Process all items
